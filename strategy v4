@@ -43,19 +43,21 @@ swap2 = docol ? MacNorm2 > MacNorm2[1] ? #0094FF : #FF006E : color.red
 // plot(Trigger, color=color.new(color.yellow, 0), title='Trigger')
 hline(0)
 
-macnormsell = input(0, "stoch>0.00", tooltip="This changes where the stoch line must be above for a sell signal, divided by 100, 0=0.00, 100=1.00") / 100
-
-c1  = ta.crossunder(MacNorm2, Trigger) ? 1 : 0
-c2  = MacNorm2 > macnormsell           ? 1 : 0
-c3  = Hist2 < 0.00                     ? 1 : 0
+MACD1 = input(-100, "stoch buy low", "stoch must be between 'stoch buy high' and this value for buys, divide the input value by 100") / 100
+MACD2 = input(0, "stoch buy high", "stoch must be between 'stoch buy low' and this value for buys, divide the input value by 100") / 100
+MACD3 = input(0, "stoch sell low", "stoch must be between 'stoch sell high' and this value for sells, divide input the value by 100") / 100
+MACD4 = input(100, "stoch sell high", "stoch must be between 'stoch sell low' and this value for sells, divide the input value by 100") / 100
+c1  = ta.crossunder(MacNorm2, Trigger)      ? 1 : 0
+c2  = MacNorm2 > MACD3 and MacNorm2 < MACD4 ? 1 : 0
+c3  = Hist2 < 0.00                          ? 1 : 0
 ct1 = c1 + c2 + c3
 ct2 = ct1==3
 // plotchar(ct2, "sell", "🔸", location.abovebar, #00ff00, size=size.tiny, text="1", textcolor=color.red)
 
-macnormbuy = input(0, "MACD<0.00", tooltip="This changes where the stoch line must be below for a buy signal, divided by 100, 0=0.00, 100=1.00") / 100
-c4  = ta.crossover(MacNorm2, Trigger) ? 1 : 0
-c5  = MacNorm2 < macnormbuy           ? 1 : 0
-c6  = Hist2 > 0.00                    ? 1 : 0
+
+c4  = ta.crossover(MacNorm2, Trigger)       ? 1 : 0
+c5  = MacNorm2 > MACD1 and MacNorm2 < MACD2 ? 1 : 0
+c6  = Hist2 > 0.00                          ? 1 : 0
 ct3 = c4 + c5 + c6
 ct4 = ct3 == 3
 // plotchar(ct4, "buy", "🔹", location.belowbar, #00ff00, size=size.tiny, text="1", textcolor=color.blue)
@@ -80,17 +82,18 @@ oversold = hline(OS, title="OS", linestyle=hline.style_solid, color=color.blue, 
 
 // fill(overbought, oversold, color.new(color.red, 95))
 
-rsiv1 = input(50, "rsi cross low", "this changes the lowest value rsi can be to allow a sell signal")
-rsiv2 = input(50, "rsi cross high", "this changes the highest value rsi can be to allow a buy signal")
-
-r1  = ta.crossunder(rsi, mr)  ? 1 : 0
-r2  = mr > rsiv1              ? 1 : 0
+rsiv1 = input(100, "rsi sell value high", "rsi value must be between 'rsi sell value low, and this value for sells")
+rsiv2 = input(0, "rsi buy value low", "rsi must be between 'rsi buy value high', and this value for buys")
+rsiv3 = input(30, "RSI sell value low", "rsi must be between 'rsi sell value high', and this number for a sell ")
+rsiv4 = input(70, "rsi buy value high", "rsi must be between 'rsi buy value low, and this value', for buys")
+r1  = ta.crossunder(rsi, mr)    ? 1 : 0
+r2  = mr < rsiv1 and mr > rsiv3 ? 1 : 0
 rt1 = r1 + r2
 rt2 = rt1==2
 // plotchar(rt2, "sell", "🔶", location.abovebar, #00ff00, size=size.tiny, text="2", textcolor=color.red)
 
-r3  = ta.crossover(rsi, mr)  ? 1 : 0
-r4  = rsi < rsiv2            ? 1 : 0
+r3  = ta.crossover(rsi, mr)        ? 1 : 0
+r4  = rsi > rsiv2 and rsi < rsiv4  ? 1 : 0
 rt3 = r3 + r4
 rt4 = rt3 == 2
 // plotchar(rt4, "buy", "🔷 ", location.belowbar, #00ff00, size=size.tiny, text="2", textcolor=color.blue)
@@ -98,13 +101,13 @@ rt4 = rt3 == 2
 buyv1 = input(6, "nmacd cross", "candles since nmac crossover, def value is 5")
 buyv2 = input(6, "rsi cross", "candles since rsi crossover, def value is 5")
 
-BOA1 = close[1] > close[2]                              ? 1 : 0
-BOA2 = ta.barssince(rt3 == 2) < buyv2                   ? 1 : 0
-BOA3 = ta.barssince(ct3 == 3) < buyv1                   ? 1 : 0
-BOA4 = ta.barssince(rt3 == 2) < ta.barssince(ct1 == 3)  ? 1 : 0
-BOA5 = ta.barssince(rt3 == 2) < ta.barssince(rt1 == 2)  ? 1 : 0
-BOA6 = ta.barssince(ct3 == 3) < ta.barssince(ct1 == 3)  ? 1 : 0
-BOA7 = ta.barssince(ct3 == 3) < ta.barssince(rt1 == 2)  ? 1 : 0
+BOA1 = close[1] > close[2]                                  ? 1 : 0
+BOA2 = ta.barssince(rt3 == 2) < buyv2                       ? 1 : 0
+BOA3 = ta.barssince(ct3 == 3) < buyv1                       ? 1 : 0
+BOA4 = ta.barssince(rt3 == 2) < ta.barssince(ct1 == 3)      ? 1 : 0
+BOA5 = ta.barssince(rt3 == 2) < ta.barssince(rt1 == 2)      ? 1 : 0
+BOA6 = ta.barssince(ct3 == 3) < ta.barssince(ct1 == 3)      ? 1 : 0
+BOA7 = ta.barssince(ct3 == 3) < ta.barssince(rt1 == 2)      ? 1 : 0
 BOA8 = ta.barssince(rt3==2)==1 or ta.barssince(ct3==3) == 1 ? 1 : 0
 
 BOA  = BOA1 + BOA2 + BOA3 + BOA4 + BOA5 + BOA6 + BOA7 + BOA8
@@ -115,13 +118,13 @@ plotchar(BOAT, "buy", "💠", location.belowbar, text="buy", textcolor=color.blu
 
 
 
-SOA1 = close[1] < close[2]                              ? 1 : 0
-SOA2 = ta.barssince(rt1 == 2) < buyv1                  ? 1 : 0
-SOA3 = ta.barssince(ct1 == 3) < buyv2                  ? 1 : 0
-SOA4 = ta.barssince(rt1 == 2) < ta.barssince(ct3 == 3)  ? 1 : 0
-SOA5 = ta.barssince(rt1 == 2) < ta.barssince(rt3 == 2)  ? 1 : 0
-SOA6 = ta.barssince(ct1 == 3) < ta.barssince(ct3 == 3)  ? 1 : 0
-SOA7 = ta.barssince(ct1 == 3) < ta.barssince(rt3 == 2)  ? 1 : 0
+SOA1 = close[1] < close[2]                                  ? 1 : 0
+SOA2 = ta.barssince(rt1 == 2) < buyv1                       ? 1 : 0
+SOA3 = ta.barssince(ct1 == 3) < buyv2                       ? 1 : 0
+SOA4 = ta.barssince(rt1 == 2) < ta.barssince(ct3 == 3)      ? 1 : 0
+SOA5 = ta.barssince(rt1 == 2) < ta.barssince(rt3 == 2)      ? 1 : 0
+SOA6 = ta.barssince(ct1 == 3) < ta.barssince(ct3 == 3)      ? 1 : 0
+SOA7 = ta.barssince(ct1 == 3) < ta.barssince(rt3 == 2)      ? 1 : 0
 SOA8 = ta.barssince(rt1==2)==1 or ta.barssince(ct1==3) == 1 ? 1 : 0
 
 SOA  = SOA1 + SOA2 + SOA3 + SOA4 + SOA5 + SOA6 + SOA7 + SOA8
@@ -136,7 +139,6 @@ MA1 = ta.ema(close, ma1)
 MA2 = ta.ema(close, ma2)
 plot(MA1, color=#ffce30, linewidth=2)
 plot(MA2, color=#288ba8, linewidth=2)
-
 
 
 
